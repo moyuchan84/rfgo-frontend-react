@@ -104,3 +104,6 @@ Thumbs.db
 
 # Temp files
 *.tmp
+
+# DevExtreme license file
+src/devextreme-license.ts

@@ -1,12 +1,12 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './presentation/pages/Home';
-import Request from './presentation/pages/Request';
-import RequestDetail from './presentation/pages/RequestDetail';
-import KeyTable from './presentation/pages/KeyTable';
-import MainLayout from './presentation/layouts/MainLayout';
+import Home from './pages/Home';
+import Request from './pages/Request';
+import RequestDetail from './pages/RequestDetail';
+import KeyTable from './pages/KeyTable';
+import MainLayout from './layouts/MainLayout';
 
-const App: React.FC = () => {
+const AppRouter: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
@@ -21,4 +21,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default AppRouter;

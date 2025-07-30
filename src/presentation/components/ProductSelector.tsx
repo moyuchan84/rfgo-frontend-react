@@ -1,41 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
-import { gql, useQuery, useMutation } from '@apollo/client';
-
-const GET_PRODUCTS = gql`
-  query GetProducts($beolOptionId: Int!) {
-    productsByBeolOptionId(beolOptionId: $beolOptionId) {
-      id
-      productName
-    }
-  }
-`;
-
-const CREATE_PRODUCT = gql`
-  mutation CreateProduct(
-    $beolOptionId: Int!
-    $processplanId: Int!
-    $productName: String!
-    $partId: String!
-  ) {
-    createProduct(
-      createProductInput: {
-        beolOptionId: $beolOptionId
-        processplanId: $processplanId
-        productName: $productName
-        partId: $partId
-      }
-    ) {
-      id
-      productName
-    }
-  }
-`;
+import { useApolloClient } from '@apollo/client';
+import { ProductService } from '../../application/product/ProductService';
 
 interface ProductSelectorProps {
   beolOptionId: number;
   processplanId: number;
-  onSelect: (productId: number) => void;
+  onSelect: (productId: number | null) => void;
 }
 
 const ProductSelector: React.FC<ProductSelectorProps> = ({
@@ -43,21 +14,34 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   processplanId,
   onSelect,
 }) => {
-  const { loading, error, data, refetch } = useQuery(GET_PRODUCTS, {
-    variables: { beolOptionId },
-    skip: !beolOptionId,
-  });
-  const [createProduct] = useMutation(CREATE_PRODUCT);
+  const client = useApolloClient();
+  const productService = useMemo(() => new ProductService(client), [client]);
 
-  const [products, setProducts] = React.useState([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  React.useEffect(() => {
-    if (data) {
-      setProducts(data.productsByBeolOptionId);
+  useEffect(() => {
+    if (!beolOptionId) {
+      setProducts([]);
+      return;
     }
-  }, [data]);
 
-  const handleCustomItemCreating = (e: any) => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await productService.getProductsByBeolOptionId(beolOptionId);
+        setProducts(data);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, [beolOptionId, productService]);
+
+  const handleCustomItemCreating = async (e: any) => {
     if (!e.text) {
       return;
     }
@@ -65,17 +49,24 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     // A partId is required, for now we will use a placeholder.
     const partId = 'temp-part-id';
 
-    e.customItem = createProduct({
-      variables: { beolOptionId, processplanId, productName: e.text, partId },
-    }).then((result) => {
-      refetch();
-      return result.data.createProduct;
-    });
+    try {
+      const newProduct = await productService.createProduct(
+        beolOptionId,
+        processplanId,
+        e.text,
+        partId,
+      );
+      setProducts((prev) => [...prev, newProduct]);
+      e.customItem = newProduct;
+    } catch (err) {
+      console.error("Error creating product:", err);
+      // Handle error appropriately, maybe show a toast
+    }
   };
 
   if (!beolOptionId) return null;
   if (loading) return <p>Loading products...</p>;
-  if (error) return <p>Error loading products :(</p>;
+  if (error) return <p>Error loading products: {error.message}</p>;
 
   return (
     <div className="dx-field">
@@ -87,7 +78,10 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
           valueExpr="id"
           searchEnabled={true}
           onCustomItemCreating={handleCustomItemCreating}
-          onValueChanged={(e) => onSelect(e.value)}
+          onValueChanged={(e) => {
+            onSelect(e.value);
+            productService.setSelectedProductId(e.value);
+          }}
           placeholder="Search or create a new Product"
         />
       </div>

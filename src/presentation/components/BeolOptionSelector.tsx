@@ -1,60 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
-import { gql, useQuery, useMutation } from '@apollo/client';
-
-const GET_BEOL_OPTIONS = gql`
-  query GetBeolOptions($processplanId: Int!) {
-    beolOptionsByProcessplanId(processplanId: $processplanId) {
-      id
-      optionName
-    }
-  }
-`;
-
-const CREATE_BEOL_OPTION = gql`
-  mutation CreateBeolOption($processplanId: Int!, $optionName: String!) {
-    createBeolOption(createBeolOptionInput: { processplanId: $processplanId, optionName: $optionName }) {
-      id
-      optionName
-    }
-  }
-`;
+import { useApolloClient } from '@apollo/client';
+import { BeolOptionService } from '../../application/beol-option/BeolOptionService';
 
 interface BeolOptionSelectorProps {
   processplanId: number;
-  onSelect: (beolOptionId: number) => void;
+  onSelect: (beolOptionId: number | null) => void;
 }
 
 const BeolOptionSelector: React.FC<BeolOptionSelectorProps> = ({ processplanId, onSelect }) => {
-  const { loading, error, data, refetch } = useQuery(GET_BEOL_OPTIONS, {
-    variables: { processplanId },
-    skip: !processplanId,
-  });
-  const [createBeolOption] = useMutation(CREATE_BEOL_OPTION);
+  const client = useApolloClient();
+  const beolOptionService = useMemo(() => new BeolOptionService(client), [client]);
 
-  const [beolOptions, setBeolOptions] = React.useState([]);
+  const [beolOptions, setBeolOptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  React.useEffect(() => {
-    if (data) {
-      setBeolOptions(data.beolOptionsByProcessplanId);
+  useEffect(() => {
+    if (!processplanId) {
+      setBeolOptions([]);
+      return;
     }
-  }, [data]);
 
-  const handleCustomItemCreating = (e: any) => {
+    const fetchBeolOptions = async () => {
+      try {
+        setLoading(true);
+        const data = await beolOptionService.getBeolOptionsByProcessplanId(processplanId);
+        setBeolOptions(data);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBeolOptions();
+  }, [processplanId, beolOptionService]);
+
+  const handleCustomItemCreating = async (e: any) => {
     if (!e.text) {
       return;
     }
 
-    e.customItem = createBeolOption({ variables: { processplanId, optionName: e.text } })
-      .then(result => {
-        refetch();
-        return result.data.createBeolOption;
-      });
+    try {
+      const newBeolOption = await beolOptionService.createBeolOption(processplanId, e.text);
+      setBeolOptions((prev) => [...prev, newBeolOption]);
+      e.customItem = newBeolOption;
+    } catch (err) {
+      console.error("Error creating beol option:", err);
+      // Handle error appropriately, maybe show a toast
+    }
   };
 
   if (!processplanId) return null;
   if (loading) return <p>Loading beol options...</p>;
-  if (error) return <p>Error loading beol options :(</p>;
+  if (error) return <p>Error loading beol options: {error.message}</p>;
 
   return (
     <div className="dx-field">
@@ -66,7 +65,10 @@ const BeolOptionSelector: React.FC<BeolOptionSelectorProps> = ({ processplanId, 
           valueExpr="id"
           searchEnabled={true}
           onCustomItemCreating={handleCustomItemCreating}
-          onValueChanged={(e) => onSelect(e.value)}
+          onValueChanged={(e) => {
+            onSelect(e.value);
+            beolOptionService.setSelectedBeolOption(e.value);
+          }}
           placeholder="Search or create a new Beol Option"
         />
       </div>

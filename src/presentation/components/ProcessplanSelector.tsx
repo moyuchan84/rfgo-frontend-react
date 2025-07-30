@@ -1,55 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
-import { gql, useQuery, useMutation } from '@apollo/client';
-
-const GET_PROCESSPLANS = gql`
-  query GetProcessplans {
-    processplans {
-      id
-      designRule
-    }
-  }
-`;
-
-const CREATE_PROCESSPLAN = gql`
-  mutation CreateProcessplan($designRule: String!) {
-    createProcessplan(createProcessplanInput: { designRule: $designRule }) {
-      id
-      designRule
-    }
-  }
-`;
+import { useApolloClient } from '@apollo/client';
+import { ProcessplanService } from '../../application/processplan/ProcessplanService';
 
 interface ProcessplanSelectorProps {
-  onSelect: (processplanId: number) => void;
+  onSelect: (processplanId: number | null) => void;
 }
 
 const ProcessplanSelector: React.FC<ProcessplanSelectorProps> = ({ onSelect }) => {
-  const { loading, error, data, refetch } = useQuery(GET_PROCESSPLANS);
-  const [createProcessplan] = useMutation(CREATE_PROCESSPLAN);
+  const client = useApolloClient();
+  const processplanService = useMemo(() => new ProcessplanService(client), [client]);
 
-  const [processplans, setProcessplans] = React.useState([]);
+  const [processplans, setProcessplans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  React.useEffect(() => {
-    if (data) {
-      setProcessplans(data.processplans);
-    }
-  }, [data]);
+  useEffect(() => {
+    const fetchProcessplans = async () => {
+      try {
+        setLoading(true);
+        const data = await processplanService.getProcessplans();
+        setProcessplans(data);
+      } catch (err) {
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProcessplans();
+  }, [processplanService]);
 
-  const handleCustomItemCreating = (e: any) => {
+  const handleCustomItemCreating = async (e: any) => {
     if (!e.text) {
       return;
     }
 
-    e.customItem = createProcessplan({ variables: { designRule: e.text } })
-      .then(result => {
-        refetch();
-        return result.data.createProcessplan;
-      });
+    try {
+      const newProcessplan = await processplanService.createProcessplan(e.text);
+      setProcessplans((prev) => [...prev, newProcessplan]);
+      e.customItem = newProcessplan;
+    } catch (err) {
+      console.error("Error creating processplan:", err);
+      // Handle error appropriately, maybe show a toast
+    }
   };
 
   if (loading) return <p>Loading process plans...</p>;
-  if (error) return <p>Error loading process plans :(</p>;
+  if (error) return <p>Error loading process plans: {error.message}</p>;
 
   return (
     <div className="dx-field">
@@ -61,7 +58,10 @@ const ProcessplanSelector: React.FC<ProcessplanSelectorProps> = ({ onSelect }) =
           valueExpr="id"
           searchEnabled={true}
           onCustomItemCreating={handleCustomItemCreating}
-          onValueChanged={(e) => onSelect(e.value)}
+          onValueChanged={(e) => {
+            onSelect(e.value);
+            processplanService.setSelectedProcessplan(e.value);
+          }}
           placeholder="Search or create a new Process Plan"
         />
       </div>

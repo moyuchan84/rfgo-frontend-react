@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ProcessplanSelector from '../components/ProcessplanSelector';
 import BeolOptionSelector from '../components/BeolOptionSelector';
 import ProductSelector from '../components/ProductSelector';
 import { RadioGroup } from 'devextreme-react/radio-group';
+import { useRequestStore } from '../../application/store/requestStore';
 
 const enum RequestType {
   New = 'New',
@@ -12,10 +13,16 @@ const enum RequestType {
 const requestTypes = [RequestType.New, RequestType.Rev];
 
 const Request: React.FC = () => {
-  const [selectedProcessplan, setSelectedProcessplan] = useState<number | null>(null);
-  const [selectedBeolOption, setSelectedBeolOption] = useState<number | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
-  const [requestType, setRequestType] = useState<RequestType>(RequestType.New);
+  const {
+    selectedProcessplanId,
+    selectedBeolOptionId,
+    selectedProductId,
+    requestType,
+    setProcessplanId,
+    setBeolOptionId,
+    setProductId,
+    setRequestType,
+  } = useRequestStore();
 
   return (
     <div>
@@ -30,23 +37,23 @@ const Request: React.FC = () => {
           />
         </div>
       </div>
-      <ProcessplanSelector onSelect={setSelectedProcessplan} />
-      {selectedProcessplan && (
+      <ProcessplanSelector onSelect={setProcessplanId} />
+      {selectedProcessplanId && (
         <BeolOptionSelector
-          processplanId={selectedProcessplan}
-          onSelect={setSelectedBeolOption}
+          processplanId={selectedProcessplanId}
+          onSelect={setBeolOptionId}
         />
       )}
-      {selectedBeolOption && selectedProcessplan && (
+      {selectedBeolOptionId && selectedProcessplanId && (
         <ProductSelector
-          beolOptionId={selectedBeolOption}
-          processplanId={selectedProcessplan}
-          onSelect={setSelectedProduct}
+          beolOptionId={selectedBeolOptionId}
+          processplanId={selectedProcessplanId}
+          onSelect={setProductId}
         />
       )}
-      {selectedProduct && (
+      {selectedProductId && (
         <div>
-          <h3>Selected Product ID: {selectedProduct}</h3>
+          <h3>Selected Product ID: {selectedProductId}</h3>
         </div>
       )}
     </div>

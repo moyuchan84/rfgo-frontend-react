@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
 import { useApolloClient } from '@apollo/client';
-import { ProcessplanService } from '../../application/processplan/ProcessplanService';
+import { ProcessplanService } from '../../application/services/ProcessplanService';
+import { ProcessplanRepository } from '../../domain/repositories/ProcessplanRepository';
 
 interface ProcessplanSelectorProps {
   onSelect: (processplanId: number | null) => void;
@@ -9,7 +10,10 @@ interface ProcessplanSelectorProps {
 
 const ProcessplanSelector: React.FC<ProcessplanSelectorProps> = ({ onSelect }) => {
   const client = useApolloClient();
-  const processplanService = useMemo(() => new ProcessplanService(client), [client]);
+  const processplanService = useMemo(
+    () => new ProcessplanService(new ProcessplanRepository(client)),
+    [client],
+  );
 
   const [processplans, setProcessplans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,11 +40,11 @@ const ProcessplanSelector: React.FC<ProcessplanSelectorProps> = ({ onSelect }) =
     }
 
     try {
-      const newProcessplan = await processplanService.createProcessplan(e.text);
+      const newProcessplan = await processplanService.createProcessplan({ name: e.text });
       setProcessplans((prev) => [...prev, newProcessplan]);
       e.customItem = newProcessplan;
     } catch (err) {
-      console.error("Error creating processplan:", err);
+      console.error('Error creating processplan:', err);
       // Handle error appropriately, maybe show a toast
     }
   };
@@ -60,7 +64,6 @@ const ProcessplanSelector: React.FC<ProcessplanSelectorProps> = ({ onSelect }) =
           onCustomItemCreating={handleCustomItemCreating}
           onValueChanged={(e) => {
             onSelect(e.value);
-            processplanService.setSelectedProcessplan(e.value);
           }}
           placeholder="Search or create a new Process Plan"
         />

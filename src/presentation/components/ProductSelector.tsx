@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
 import { useApolloClient } from '@apollo/client';
-import { ProductService } from '../../application/product/ProductService';
+import { ProductService } from '../../application/services/ProductService';
+import { ProductRepository } from '../../domain/repositories/ProductRepository';
 
 interface ProductSelectorProps {
   beolOptionId: number;
@@ -15,7 +16,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   onSelect,
 }) => {
   const client = useApolloClient();
-  const productService = useMemo(() => new ProductService(client), [client]);
+  const productService = useMemo(() => new ProductService(new ProductRepository(client)), [client]);
 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,20 +47,16 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       return;
     }
 
-    // A partId is required, for now we will use a placeholder.
-    const partId = 'temp-part-id';
-
     try {
-      const newProduct = await productService.createProduct(
+      const newProduct = await productService.createProduct({
         beolOptionId,
         processplanId,
-        e.text,
-        partId,
-      );
+        name: e.text,
+      });
       setProducts((prev) => [...prev, newProduct]);
       e.customItem = newProduct;
     } catch (err) {
-      console.error("Error creating product:", err);
+      console.error('Error creating product:', err);
       // Handle error appropriately, maybe show a toast
     }
   };
@@ -80,7 +77,6 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
           onCustomItemCreating={handleCustomItemCreating}
           onValueChanged={(e) => {
             onSelect(e.value);
-            productService.setSelectedProductId(e.value);
           }}
           placeholder="Search or create a new Product"
         />

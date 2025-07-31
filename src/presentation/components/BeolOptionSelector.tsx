@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { SelectBox } from 'devextreme-react/select-box';
 import { useApolloClient } from '@apollo/client';
-import { BeolOptionService } from '../../application/beol-option/BeolOptionService';
+import { BeolOptionService } from '../../application/services/BeolOptionService';
+import { BeolOptionRepository } from '../../domain/repositories/BeolOptionRepository';
 
 interface BeolOptionSelectorProps {
   processplanId: number;
@@ -10,7 +11,10 @@ interface BeolOptionSelectorProps {
 
 const BeolOptionSelector: React.FC<BeolOptionSelectorProps> = ({ processplanId, onSelect }) => {
   const client = useApolloClient();
-  const beolOptionService = useMemo(() => new BeolOptionService(client), [client]);
+  const beolOptionService = useMemo(
+    () => new BeolOptionService(new BeolOptionRepository(client)),
+    [client],
+  );
 
   const [beolOptions, setBeolOptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,11 +46,14 @@ const BeolOptionSelector: React.FC<BeolOptionSelectorProps> = ({ processplanId, 
     }
 
     try {
-      const newBeolOption = await beolOptionService.createBeolOption(processplanId, e.text);
+      const newBeolOption = await beolOptionService.createBeolOption({
+        processplanId,
+        name: e.text,
+      });
       setBeolOptions((prev) => [...prev, newBeolOption]);
       e.customItem = newBeolOption;
     } catch (err) {
-      console.error("Error creating beol option:", err);
+      console.error('Error creating beol option:', err);
       // Handle error appropriately, maybe show a toast
     }
   };
@@ -67,7 +74,6 @@ const BeolOptionSelector: React.FC<BeolOptionSelectorProps> = ({ processplanId, 
           onCustomItemCreating={handleCustomItemCreating}
           onValueChanged={(e) => {
             onSelect(e.value);
-            beolOptionService.setSelectedBeolOption(e.value);
           }}
           placeholder="Search or create a new Beol Option"
         />

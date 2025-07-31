@@ -1,6 +1,6 @@
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client';
 
-const client = new ApolloClient({
+const client: ApolloClient<NormalizedCacheObject> = new ApolloClient({
   uri: import.meta.env.VITE_GRAPHQL_API_URL,
   cache: new InMemoryCache(),
 });

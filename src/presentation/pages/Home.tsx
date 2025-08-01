@@ -44,7 +44,7 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <VStack spacing={8} justify="center" align="center" height="100vh">
+    <VStack gap={8} justify="center" align="center" height="75vh">
       <Heading as="h1" size="2xl" mb={4}>
         RFGo
       </Heading>
@@ -55,12 +55,7 @@ const Home: React.FC = () => {
         stylingMode="outlined"
         elementAttr={{ class: 'rounded-textbox' }}
       />
-      <DataGrid
-        dataSource={customers}
-        showBorders={true}
-        width="80%"
-        columnAutoWidth={true}
-      />
+      <DataGrid dataSource={customers} showBorders={true} width="80%" columnAutoWidth={true} />
     </VStack>
   );
 };

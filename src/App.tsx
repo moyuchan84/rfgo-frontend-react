@@ -5,7 +5,7 @@ import Request from './presentation/pages/Request';
 import RequestDetail from './presentation/pages/RequestDetail';
 import KeyTable from './presentation/pages/KeyTable';
 import MainLayout from './presentation/layouts/MainLayout';
-
+import 'devextreme/dist/css/dx.light.css';
 const App: React.FC = () => {
   return (
     <BrowserRouter>

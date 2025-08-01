@@ -1,42 +1,66 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Box, Flex, Heading, Link } from '@chakra-ui/react';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Avatar, Box, Flex, HStack, Spacer, Text, chakra } from '@chakra-ui/react';
+
+const menuItems = [
+  { path: '/', name: 'Home' },
+  { path: '/request', name: 'Request' },
+  { path: '/product-creation', name: 'Product Creation' },
+  { path: '/key-table', name: 'Key Table' },
+];
+
+const StyledRouterLink = chakra(RouterLink);
 
 const Header: React.FC = () => {
+  const location = useLocation();
+
   return (
     <Flex
       as="header"
       align="center"
       justify="space-between"
       wrap="wrap"
-      padding="0.75rem"
-      bg="blue.800"
+      padding="1.5rem"
+      bg="gray.800"
       color="white"
     >
-      <Flex align="center" mr={5}>
-        <Heading as="h1" size="lg" letterSpacing={'tighter'}>
-          <Link as={RouterLink} to="/">
-            RFGo
-          </Link>
-        </Heading>
-      </Flex>
-
-      <Box
-        display={{ base: 'none', md: 'flex' }}
-        width={{ base: 'full', md: 'auto' }}
-        alignItems="center"
-        flexGrow={1}
-      >
-        <Link as={RouterLink} to="/" mr={4}>
-          Home
-        </Link>
-        <Link as={RouterLink} to="/request" mr={4}>
-          Request
-        </Link>
-        <Link as={RouterLink} to="/keytable">
-          KeyTable
-        </Link>
+      <Box>
+        <StyledRouterLink
+          to="/"
+          fontSize="2xl"
+          fontWeight="bold"
+          color="white"
+          _hover={{ textDecoration: 'none' }}
+        >
+          RFGO
+        </StyledRouterLink>
       </Box>
+      <Spacer />
+      <HStack gap={8} align="center">
+        <HStack as="nav" gap={8}>
+          {menuItems.map((item) => (
+            <StyledRouterLink
+              key={item.name}
+              to={item.path}
+              p={2}
+              borderRadius="md"
+              bg={location.pathname === item.path ? 'gray.700' : 'transparent'}
+              _hover={{
+                bg: 'gray.600',
+                textDecoration: 'none',
+              }}
+              fontWeight={location.pathname === item.path ? 'bold' : 'normal'}
+              color="white"
+            >
+              {item.name}
+            </StyledRouterLink>
+          ))}
+        </HStack>
+        <HStack gap={4} align="center">
+          {/* <Avatar name="Profile" size="sm" /> */}
+          <Text>Profile</Text>
+        </HStack>
+      </HStack>
     </Flex>
   );
 };

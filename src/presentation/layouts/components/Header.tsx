@@ -6,7 +6,7 @@ const menuItems = [
   { path: '/', name: 'Home' },
   { path: '/request', name: 'Request' },
   { path: '/product-creation', name: 'Product Creation' },
-  { path: '/key-table', name: 'Key Table' },
+  { path: '/keytable', name: 'Key Table' },
 ];
 
 const StyledRouterLink = chakra(RouterLink);

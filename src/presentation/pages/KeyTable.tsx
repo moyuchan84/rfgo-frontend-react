@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useApolloClient } from '@apollo/client';
 import KeyTableSearch from '../components/KeyTableSearch';
 import KeyTableDisplay from '../components/KeyTableDisplay';
+import PivotKeyTable from '../components/PivotKeyTable';
 import { useKeyTableStore } from '../../application/store/keyTableStore';
 import { ProductKeyTableService } from '../../application/services/ProductKeyTableService';
 import { ProductKeyTableRepository } from '../../domain/repositories/ProductKeyTableRepository';
@@ -25,6 +26,7 @@ const KeyTable: React.FC = () => {
     <div className="key-table-page">
       <KeyTableSearch />
       <KeyTableDisplay />
+      <PivotKeyTable />
     </div>
   );
 };

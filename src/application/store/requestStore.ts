@@ -23,6 +23,7 @@ interface RequestState {
   addEdmUrl: (url: string) => void;
   removeEdmUrl: (url: string) => void;
   setProductMetas: (metas: { metaKey: string; metaValue: string }[]) => void;
+  updateProductMeta: (metaKey: string, metaValue: string) => void;
 }
 
 export const useRequestStore = create<RequestState>((set) => ({
@@ -43,4 +44,10 @@ export const useRequestStore = create<RequestState>((set) => ({
   addEdmUrl: (url) => set((state) => ({ edmUrls: [...state.edmUrls, url] })),
   removeEdmUrl: (url) => set((state) => ({ edmUrls: state.edmUrls.filter((u) => u !== url) })),
   setProductMetas: (metas) => set({ productMetas: metas }),
+  updateProductMeta: (metaKey, metaValue) =>
+    set((state) => ({
+      productMetas: state.productMetas.map((meta) =>
+        meta.metaKey === metaKey ? { ...meta, metaValue } : meta,
+      ),
+    })),
 }));

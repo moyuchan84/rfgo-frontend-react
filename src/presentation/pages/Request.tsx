@@ -10,7 +10,7 @@ import EdmUrlManager from '../components/request/EdmUrlManager';
 import { Box, HStack, VStack } from '@chakra-ui/react';
 
 const Request: React.FC = () => {
-  const { title, content, edmUrls, selectedProductId } = useRequestStore();
+  const { requestType, title, content, edmUrls, selectedProductId } = useRequestStore();
   const { createRequestItem, loading: createLoading } = useRequestItemService();
 
   const handleSubmit = () => {
@@ -28,14 +28,14 @@ const Request: React.FC = () => {
 
   return (
     <Box p={5}>
-      <VStack gap={5} align="stretch">
+      <VStack spacing={5} align="stretch">
         <HStack justifyContent="flex-end">
           <Button text="의뢰" type="default" disabled={createLoading} onClick={handleSubmit} />
           <Button text="취소" type="danger" />
         </HStack>
         <JobTypeSelector />
-        <ProductInfoSelector />
-        <MetaInfoDisplay />
+        {requestType === 'REVISION' && <ProductInfoSelector />}
+        <MetaInfoDisplay isEditable={requestType === 'NEW'} />
         <RequestDetails />
         <EdmUrlManager />
       </VStack>

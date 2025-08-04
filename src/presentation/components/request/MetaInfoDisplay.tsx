@@ -5,23 +5,39 @@ import { useProductMetaService } from '../../../application/services/ProductMeta
 import { Box, SimpleGrid, Text, VStack } from '@chakra-ui/react';
 import { isEqual } from 'lodash';
 
-const MetaInfoDisplay: React.FC = () => {
-  const { selectedProductId, productMetas, setProductMetas } = useRequestStore();
+interface MetaInfoDisplayProps {
+  isEditable: boolean;
+}
+
+const MetaInfoDisplay: React.FC<MetaInfoDisplayProps> = ({ isEditable }) => {
+  const { selectedProductId, productMetas, setProductMetas, updateProductMeta } = useRequestStore();
   const { productMetas: fetchedMetas, loading: metasLoading } = useProductMetaService(
     selectedProductId || 0,
   );
 
   useEffect(() => {
-    if (fetchedMetas && !isEqual(fetchedMetas, productMetas)) {
+    if (!isEditable && fetchedMetas && !isEqual(fetchedMetas, productMetas)) {
       setProductMetas(fetchedMetas);
     }
-  }, [fetchedMetas, productMetas, setProductMetas]);
+  }, [fetchedMetas, productMetas, setProductMetas, isEditable]);
 
   return (
     <Box borderWidth="1px" borderRadius="lg" p={4} mb={4}>
       <VStack align="start">
         <Text fontWeight="bold">메타정보</Text>
-        {metasLoading ? (
+        {isEditable ? (
+          <SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>
+            {productMetas && productMetas.map((meta, index) => (
+              <Box key={index}>
+                <Text>{meta.metaKey}</Text>
+                <TextBox
+                  value={meta.metaValue}
+                  onValueChanged={(e) => updateProductMeta(meta.metaKey, e.value)}
+                />
+              </Box>
+            ))}
+          </SimpleGrid>
+        ) : metasLoading ? (
           <Text>Loading...</Text>
         ) : (
           <SimpleGrid columns={{ sm: 2, md: 3 }} spacing={4}>

@@ -1,62 +1,45 @@
 import React from 'react';
-import ProcessplanSelector from '../components/ProcessplanSelector';
-import BeolOptionSelector from '../components/BeolOptionSelector';
-import ProductSelector from '../components/ProductSelector';
-import { RadioGroup } from 'devextreme-react/radio-group';
+import { Button } from 'devextreme-react';
 import { useRequestStore } from '../../application/store/requestStore';
-
-const enum RequestType {
-  New = 'New',
-  Rev = 'Rev',
-}
-
-const requestTypes = [RequestType.New, RequestType.Rev];
+import { useRequestItemService } from '../../application/services/RequestItemService';
+import JobTypeSelector from '../components/request/JobTypeSelector';
+import ProductInfoSelector from '../components/request/ProductInfoSelector';
+import MetaInfoDisplay from '../components/request/MetaInfoDisplay';
+import RequestDetails from '../components/request/RequestDetails';
+import EdmUrlManager from '../components/request/EdmUrlManager';
+import { Box, HStack, VStack } from '@chakra-ui/react';
 
 const Request: React.FC = () => {
-  const {
-    selectedProcessplanId,
-    selectedBeolOptionId,
-    selectedProductId,
-    requestType,
-    setProcessplanId,
-    setBeolOptionId,
-    setProductId,
-    setRequestType,
-  } = useRequestStore();
+  const { title, content, edmUrls, selectedProductId } = useRequestStore();
+  const { createRequestItem, loading: createLoading } = useRequestItemService();
+
+  const handleSubmit = () => {
+    createRequestItem({
+      variables: {
+        createRequestItemInput: {
+          title,
+          content,
+          edmUrls,
+          productId: selectedProductId,
+        },
+      },
+    });
+  };
 
   return (
-    <div>
-      <div className="dx-field">
-        <div className="dx-field-label">Request Type</div>
-        <div className="dx-field-value">
-          <RadioGroup
-            dataSource={requestTypes}
-            value={requestType}
-            onValueChanged={(e) => setRequestType(e.value)}
-            layout="horizontal"
-          />
-        </div>
-      </div>
-      <ProcessplanSelector onSelect={setProcessplanId} />
-      {selectedProcessplanId && (
-        <BeolOptionSelector
-          processplanId={selectedProcessplanId}
-          onSelect={setBeolOptionId}
-        />
-      )}
-      {selectedBeolOptionId && selectedProcessplanId && (
-        <ProductSelector
-          beolOptionId={selectedBeolOptionId}
-          processplanId={selectedProcessplanId}
-          onSelect={setProductId}
-        />
-      )}
-      {selectedProductId && (
-        <div>
-          <h3>Selected Product ID: {selectedProductId}</h3>
-        </div>
-      )}
-    </div>
+    <Box p={5}>
+      <VStack gap={5} align="stretch">
+        <HStack justifyContent="flex-end">
+          <Button text="의뢰" type="default" disabled={createLoading} onClick={handleSubmit} />
+          <Button text="취소" type="danger" />
+        </HStack>
+        <JobTypeSelector />
+        <ProductInfoSelector />
+        <MetaInfoDisplay />
+        <RequestDetails />
+        <EdmUrlManager />
+      </VStack>
+    </Box>
   );
 };
 

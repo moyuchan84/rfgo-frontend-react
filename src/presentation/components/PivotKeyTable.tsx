@@ -16,10 +16,19 @@ const PivotKeyTable: React.FC = () => {
     const allSteps = _.uniq(
       _.flatten(
         keyTables.map((kt) =>
-          Array.isArray(kt.keyTableJson) ? kt.keyTableJson.map((item) => item.step) : [],
+          Array.isArray(kt.keyTableJson)
+            ? kt.keyTableJson.map((item: any) => {
+                try {
+                  const parsedItem = typeof item === 'string' ? JSON.parse(item) : item;
+                  return parsedItem.step;
+                } catch {
+                  return null;
+                }
+              })
+            : [],
         ),
       ),
-    );
+    ).filter((step) => step != null);
 
     const pivotedDataMap = new Map<string, any>();
     allSteps.forEach((step) => {
@@ -28,10 +37,15 @@ const PivotKeyTable: React.FC = () => {
 
     keyTables.forEach((keyTable) => {
       if (Array.isArray(keyTable.keyTableJson)) {
-        keyTable.keyTableJson.forEach((item) => {
-          if (pivotedDataMap.has(item.step)) {
-            const row = pivotedDataMap.get(item.step);
-            row[keyTable.keyTableName] = item.count;
+        keyTable.keyTableJson.forEach((item: any) => {
+          try {
+            const parsedItem = typeof item === 'string' ? JSON.parse(item) : item;
+            if (parsedItem && parsedItem.step && pivotedDataMap.has(parsedItem.step)) {
+              const row = pivotedDataMap.get(parsedItem.step);
+              row[keyTable.keyTableName] = Object.keys(parsedItem).length;
+            }
+          } catch (error) {
+            console.error('Error parsing key table item:', error);
           }
         });
       }

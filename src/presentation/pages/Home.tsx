@@ -1,6 +1,5 @@
 import React from 'react';
 import { VStack, Heading } from '@chakra-ui/react';
-import '../../styles/common.scss';
 import { TextBox } from 'devextreme-react/text-box';
 import { DataGrid } from 'devextreme-react/data-grid';
 

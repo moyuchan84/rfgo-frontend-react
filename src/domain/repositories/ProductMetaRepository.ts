@@ -1,13 +1,14 @@
 import { gql } from '@apollo/client';
 
 export const GET_PRODUCT_METAS = gql`
-  query GetProduct($id: Int!) {
-    product(id: $id) {
-      productMeta {
-        id
-        metaKey
-        metaValue
-      }
+  query GetProduct($productId: Int!) {
+    productMetaByProductId(productId: $productId) {
+      customer
+      id
+      mtoDate
+      processId
+      productId
+      updateTime
     }
   }
 `;

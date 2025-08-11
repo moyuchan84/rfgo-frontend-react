@@ -1,12 +1,5 @@
-import { gql } from '@apollo/client';
+import type { RequestItem } from '../entities/RequestItem';
 
-export const CREATE_REQUEST_ITEM = gql`
-  mutation CreateRequestItem($createRequestItemInput: CreateRequestItemInput!) {
-    createRequestItem(createRequestItemInput: $createRequestItemInput) {
-      id
-      title
-      content
-      edmUrls
-    }
-  }
-`;
+export interface RequestItemRepository {
+  getRequestItemsByUpdateTimeRange(fromTime: Date, endTime: Date): Promise<RequestItem[]>;
+}

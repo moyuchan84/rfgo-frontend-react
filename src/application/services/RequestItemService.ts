@@ -1,13 +1,13 @@
-import { useMutation } from '@apollo/client';
-import { CREATE_REQUEST_ITEM } from '../../domain/repositories/RequestItemRepository';
+import type { RequestItemRepository } from '../../domain/repositories/RequestItemRepository';
 
-export const useRequestItemService = () => {
-  const [createRequestItem, { data, loading, error }] = useMutation(CREATE_REQUEST_ITEM);
+export class RequestItemService {
+  private requestItemRepository: RequestItemRepository;
 
-  return {
-    createRequestItem,
-    createdRequestItem: data?.createRequestItem,
-    loading,
-    error,
-  };
-};
+  constructor(requestItemRepository: RequestItemRepository) {
+    this.requestItemRepository = requestItemRepository;
+  }
+
+  async getRequestItemsByUpdateTimeRange(fromTime: Date, endTime: Date) {
+    return await this.requestItemRepository.getRequestItemsByUpdateTimeRange(fromTime, endTime);
+  }
+}

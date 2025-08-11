@@ -8,7 +8,7 @@ import devextremeConfig from 'devextreme/core/config';
 import { licenseKey } from './devextreme-license';
 import { ApolloProvider } from '@apollo/client';
 import client from './infrastructure/apollo-client';
-
+import 'devextreme/dist/css/dx.light.css';
 devextremeConfig({ licenseKey });
 
 createRoot(document.getElementById('root')!).render(
